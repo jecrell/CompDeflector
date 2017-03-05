@@ -204,6 +204,7 @@ namespace CompDeflector
         {
             Job job = new Job(CompDeflectorDefOf.CastDeflectVerb, dinfo.Instigator);
             job.playerForced = true;
+            job.locomotionUrgency = LocomotionUrgency.Sprint;
 
             Pawn pawn2 = dinfo.Instigator as Pawn;
             job.verbToUse = deflectVerb;
@@ -222,7 +223,7 @@ namespace CompDeflector
                 job.killIncappedTarget = pawn2.Downed;
             }
             GetPawn.jobs.TryTakeOrderedJob(job);
-            Log.Message("TryToTakeOrderedJob Called");
+            //Log.Message("TryToTakeOrderedJob Called");
         }
         
         /// <summary>
@@ -242,7 +243,7 @@ namespace CompDeflector
                         bool? isActive = (bool)AccessTools.Method(GetActivatableEffect.GetType(), "IsActive").Invoke(GetActivatableEffect, null);
                         if (isActive == false)
                         {
-                            Log.Message("Inactivate Weapon");
+                            //Log.Message("Inactivate Weapon");
                             absorbed = false;
                             return;
                         }

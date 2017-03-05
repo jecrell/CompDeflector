@@ -19,7 +19,8 @@ namespace CompDeflector
             HarmonyInstance harmony = HarmonyInstance.Create("rimworld.jecrell.comps.deflector");
 
             harmony.Patch(typeof(Thing).GetMethod("TakeDamage"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("PreApplyDamagePreFix")), null);
-            harmony.Patch(typeof(PawnRenderer).GetMethod("DrawEquipmentAiming"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("DrawEquipmentAimingPreFix")), null);
+            //harmony.Patch(typeof(PawnRenderer).GetMethod("DrawEquipmentAiming"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("DrawEquipmentAimingPreFix")), null);
+            harmony.Patch(typeof(PawnRenderer).GetMethod("DrawEquipmentAiming"), null, new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("DrawEquipmentAimingPostFix")), null);
             //harmony.Patch(typeof(Thing).GetMethod("get_SpecialDisplayStats"), null, new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("SpecialDisplayStatsPostFix")), null);
         }
 
@@ -57,7 +58,8 @@ namespace CompDeflector
         //    }
         //}
 
-        public static bool DrawEquipmentAimingPreFix(PawnRenderer __instance, Thing eq, Vector3 drawLoc, float aimAngle)
+
+        public static void DrawEquipmentAimingPostFix(PawnRenderer __instance, Thing eq, Vector3 drawLoc, float aimAngle)
         {
             Pawn pawn = (Pawn)AccessTools.Field(typeof(PawnRenderer), "pawn").GetValue(__instance);
             if (pawn != null)
@@ -75,24 +77,27 @@ namespace CompDeflector
                             {
                                 if (compDeflector.IsAnimatingNow)
                                 {
+                                    bool flip = false;
                                     compDeflector.AnimationDeflectionTicks -= 20;
+                                    float offset = eq.def.equippedAngleOffset;
                                     float num = aimAngle - 90f;
-                                    Mesh mesh;
                                     if (aimAngle > 20f && aimAngle < 160f)
                                     {
-                                        mesh = MeshPool.plane10;
-                                        num += eq.def.equippedAngleOffset + ((compDeflector.AnimationDeflectionTicks + 1) / 2);
+
+                                        //mesh = MeshPool.plane10;
+                                        num += offset + ((compDeflector.AnimationDeflectionTicks + 1) / 2);
                                     }
                                     else if (aimAngle > 200f && aimAngle < 340f)
                                     {
-                                        mesh = MeshPool.plane10Flip;
+                                        //mesh = MeshPool.plane10Flip;
+                                        flip = true;
                                         num -= 180f;
-                                        num -= eq.def.equippedAngleOffset - ((compDeflector.AnimationDeflectionTicks + 1) / 2);
+                                        num -= offset - ((compDeflector.AnimationDeflectionTicks + 1) / 2);
                                     }
                                     else
                                     {
-                                        mesh = MeshPool.plane10;
-                                        num += eq.def.equippedAngleOffset + ((compDeflector.AnimationDeflectionTicks + 1) / 2);
+                                        //mesh = MeshPool.plane10;
+                                        num += offset + ((compDeflector.AnimationDeflectionTicks + 1) / 2);
                                     }
                                     num %= 360f;
                                     Graphic_StackCount graphic_StackCount = eq.Graphic as Graphic_StackCount;
@@ -105,15 +110,21 @@ namespace CompDeflector
                                     {
                                         matSingle = eq.Graphic.MatSingle;
                                     }
-                                    Graphics.DrawMesh(mesh, drawLoc, Quaternion.AngleAxis(num, Vector3.up), matSingle, 0);
-                                    return false;
+                                    //mesh = MeshPool.GridPlane(thingWithComps.def.graphicData.drawSize);
+                                    //Graphics.DrawMesh(mesh, drawLoc, Quaternion.AngleAxis(num, Vector3.up), matSingle, 0);
+
+                                    Vector3 s = new Vector3(eq.def.graphicData.drawSize.x, 1f, eq.def.graphicData.drawSize.y);
+                                    Matrix4x4 matrix = default(Matrix4x4);
+                                    matrix.SetTRS(drawLoc, Quaternion.AngleAxis(num, Vector3.up), s);
+                                    if (!flip) Graphics.DrawMesh(MeshPool.plane10, matrix, matSingle, 0);
+                                    else Graphics.DrawMesh(MeshPool.plane10Flip, matrix, matSingle, 0);
+                                    //Log.Message("DeflectDraw");
                                 }
                             }
                         }
                     }
                 }
             }
-            return true;
         }
 
         public static bool PreApplyDamagePreFix(Thing __instance, ref DamageInfo dinfo)
@@ -137,7 +148,7 @@ namespace CompDeflector
                                 compDeflector.PostPreApplyDamage(dinfo, out newAbsorbed);
                                 if (newAbsorbed)
                                 {
-                                    compDeflector.AnimationDeflectionTicks = 400;
+                                    compDeflector.AnimationDeflectionTicks = 1200;
                                     dinfo.SetAmount(0);
                                     return false;
                                 }

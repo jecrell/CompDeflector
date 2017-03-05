@@ -29,10 +29,10 @@ namespace CompDeflector
 
         protected override IEnumerable<Toil> MakeNewToils()
         {
-            Log.Message("DeflecVErbcalls");
+            //Log.Message("DeflecVErbcalls");
             yield return Toils_Misc.ThrowColonistAttackingMote(TargetIndex.A);
-            Toil getInRangeToil = Toils_Combat.GotoCastPosition(TargetIndex.A, false);
-            yield return getInRangeToil;
+            //Toil getInRangeToil = Toils_Combat.GotoCastPosition(TargetIndex.A, false);
+            //yield return getInRangeToil;
             Verb_LaunchProjectile verb = pawn.CurJob.verbToUse as Verb_LaunchProjectile;
 
             //Find.Targeter.targetingVerb = verb;
