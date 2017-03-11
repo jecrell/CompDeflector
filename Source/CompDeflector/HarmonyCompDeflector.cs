@@ -58,73 +58,85 @@ namespace CompDeflector
         //    }
         //}
 
-
         public static void DrawEquipmentAimingPostFix(PawnRenderer __instance, Thing eq, Vector3 drawLoc, float aimAngle)
         {
             Pawn pawn = (Pawn)AccessTools.Field(typeof(PawnRenderer), "pawn").GetValue(__instance);
             if (pawn != null)
             {
+                //Log.Message("1");
                 Pawn_EquipmentTracker pawn_EquipmentTracker = pawn.equipment;
                 if (pawn_EquipmentTracker != null)
                 {
+
+                    //Log.Message("2");
                     foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipment)
                     {
+
+                        //Log.Message("3");
                         if (thingWithComps != null)
                         {
+
+                            //Log.Message("4");
                             //Log.Message("3");
                             CompDeflector compDeflector = thingWithComps.GetComp<CompDeflector>();
                             if (compDeflector != null)
                             {
+
+                                //Log.Message("5");
                                 if (compDeflector.IsAnimatingNow)
                                 {
-                                    bool flip = false;
-                                    compDeflector.AnimationDeflectionTicks -= 20;
-                                    float offset = eq.def.equippedAngleOffset;
-                                    float num = aimAngle - 90f;
-                                    if (aimAngle > 20f && aimAngle < 160f)
-                                    {
+                                bool flip = false;
+                                if (!Find.TickManager.Paused && compDeflector.IsAnimatingNow) compDeflector.AnimationDeflectionTicks -= 20;
+                                float offset = eq.def.equippedAngleOffset;
+                                float num = aimAngle - 90f;
+                                if (aimAngle > 20f && aimAngle < 160f)
+                                {
+                                    //mesh = MeshPool.plane10;
+                                    num += offset;
+                                    if (compDeflector.IsAnimatingNow) num += ((compDeflector.AnimationDeflectionTicks + 1) / 2);
+                                }
+                                else if (aimAngle > 200f && aimAngle < 340f)
+                                {
+                                    //mesh = MeshPool.plane10Flip;
+                                    flip = true;
+                                    num -= 180f;
+                                    num -= offset;
+                                    if (compDeflector.IsAnimatingNow) num -= ((compDeflector.AnimationDeflectionTicks + 1) / 2);
+                                }
+                                else
+                                {
+                                    //mesh = MeshPool.plane10;
+                                    num += offset;
+                                    if (compDeflector.IsAnimatingNow) num += ((compDeflector.AnimationDeflectionTicks + 1) / 2);
+                                }
+                                num %= 360f;
+                                Graphic_StackCount graphic_StackCount = eq.Graphic as Graphic_StackCount;
+                                Material matSingle;
+                                if (graphic_StackCount != null)
+                                {
+                                    matSingle = graphic_StackCount.SubGraphicForStackCount(1, eq.def).MatSingle;
+                                }
+                                else
+                                {
+                                    matSingle = eq.Graphic.MatSingle;
+                                }
+                                //mesh = MeshPool.GridPlane(thingWithComps.def.graphicData.drawSize);
+                                //Graphics.DrawMesh(mesh, drawLoc, Quaternion.AngleAxis(num, Vector3.up), matSingle, 0);
 
-                                        //mesh = MeshPool.plane10;
-                                        num += offset + ((compDeflector.AnimationDeflectionTicks + 1) / 2);
-                                    }
-                                    else if (aimAngle > 200f && aimAngle < 340f)
-                                    {
-                                        //mesh = MeshPool.plane10Flip;
-                                        flip = true;
-                                        num -= 180f;
-                                        num -= offset - ((compDeflector.AnimationDeflectionTicks + 1) / 2);
-                                    }
-                                    else
-                                    {
-                                        //mesh = MeshPool.plane10;
-                                        num += offset + ((compDeflector.AnimationDeflectionTicks + 1) / 2);
-                                    }
-                                    num %= 360f;
-                                    Graphic_StackCount graphic_StackCount = eq.Graphic as Graphic_StackCount;
-                                    Material matSingle;
-                                    if (graphic_StackCount != null)
-                                    {
-                                        matSingle = graphic_StackCount.SubGraphicForStackCount(1, eq.def).MatSingle;
-                                    }
-                                    else
-                                    {
-                                        matSingle = eq.Graphic.MatSingle;
-                                    }
-                                    //mesh = MeshPool.GridPlane(thingWithComps.def.graphicData.drawSize);
-                                    //Graphics.DrawMesh(mesh, drawLoc, Quaternion.AngleAxis(num, Vector3.up), matSingle, 0);
-
-                                    Vector3 s = new Vector3(eq.def.graphicData.drawSize.x, 1f, eq.def.graphicData.drawSize.y);
-                                    Matrix4x4 matrix = default(Matrix4x4);
-                                    matrix.SetTRS(drawLoc, Quaternion.AngleAxis(num, Vector3.up), s);
-                                    if (!flip) Graphics.DrawMesh(MeshPool.plane10, matrix, matSingle, 0);
-                                    else Graphics.DrawMesh(MeshPool.plane10Flip, matrix, matSingle, 0);
-                                    //Log.Message("DeflectDraw");
+                                Vector3 s = new Vector3(eq.def.graphicData.drawSize.x, 1f, eq.def.graphicData.drawSize.y);
+                                Matrix4x4 matrix = default(Matrix4x4);
+                                matrix.SetTRS(drawLoc, Quaternion.AngleAxis(num, Vector3.up), s);
+                                if (!flip) Graphics.DrawMesh(MeshPool.plane10, matrix, matSingle, 0);
+                                else Graphics.DrawMesh(MeshPool.plane10Flip, matrix, matSingle, 0);
+                                
+                                //Log.Message("DeflectDraw");
                                 }
                             }
                         }
                     }
                 }
             }
+            
         }
 
         public static bool PreApplyDamagePreFix(Thing __instance, ref DamageInfo dinfo)
@@ -144,13 +156,19 @@ namespace CompDeflector
                             CompDeflector compDeflector = thingWithComps.GetComp<CompDeflector>();
                             if (compDeflector != null)
                             {
-                                bool newAbsorbed = false;
-                                compDeflector.PostPreApplyDamage(dinfo, out newAbsorbed);
-                                if (newAbsorbed)
+                                if (dinfo.Def != DamageDefOf.Bomb)
                                 {
-                                    compDeflector.AnimationDeflectionTicks = 1200;
-                                    dinfo.SetAmount(0);
-                                    return false;
+                                    if (!dinfo.WeaponGear.IsMeleeWeapon)
+                                    {
+                                        bool newAbsorbed = false;
+                                        compDeflector.PostPreApplyDamage(dinfo, out newAbsorbed);
+                                        if (newAbsorbed)
+                                        {
+                                            compDeflector.AnimationDeflectionTicks = 1200;
+                                            dinfo.SetAmount(0);
+                                            return false;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -159,6 +177,6 @@ namespace CompDeflector
             }
             return true;
         }
-        
+
     }
 }
