@@ -158,15 +158,21 @@ namespace CompDeflector
                             {
                                 if (dinfo.Def != DamageDefOf.Bomb)
                                 {
-                                    if (!dinfo.WeaponGear.IsMeleeWeapon)
+                                    if (dinfo.Def != DamageDefOf.Flame)
                                     {
-                                        bool newAbsorbed = false;
-                                        compDeflector.PostPreApplyDamage(dinfo, out newAbsorbed);
-                                        if (newAbsorbed)
+                                        if (!dinfo.Def.isExplosive)
                                         {
-                                            compDeflector.AnimationDeflectionTicks = 1200;
-                                            dinfo.SetAmount(0);
-                                            return false;
+                                            if (!dinfo.WeaponGear.IsMeleeWeapon)
+                                            {
+                                                bool newAbsorbed = false;
+                                                compDeflector.PostPreApplyDamage(dinfo, out newAbsorbed);
+                                                if (newAbsorbed)
+                                                {
+                                                    compDeflector.AnimationDeflectionTicks = 1200;
+                                                    dinfo.SetAmount(0);
+                                                    return false;
+                                                }
+                                            }
                                         }
                                     }
                                 }
