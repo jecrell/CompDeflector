@@ -88,12 +88,19 @@ namespace CompDeflector
 
         public void DeflectionSkillGain(SkillRecord skill)
         {
-            skill.Learn(this.Props.deflectSkillLearnRate);
+            if (this.GetPawn.skills != null)
+            {
+                this.GetPawn.skills.Learn(this.Props.deflectSkill, this.Props.deflectSkillLearnRate, false);
+            }
         }
+
 
         public void ReflectionSkillGain(SkillRecord skill)
         {
-            skill.Learn(this.Props.reflectSkillLearnRate);
+            if (this.GetPawn.skills != null)
+            {
+                this.GetPawn.skills.Learn(this.Props.reflectSkill, this.Props.reflectSkillLearnRate, false);
+            }
         }
 
         //Accuracy Roll Calculator
