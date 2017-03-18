@@ -30,7 +30,7 @@ namespace CompDeflector
                     {
                         if (thingWithComps != null)
                         {
-                            //Log.Message("3");
+                            ////Log.Message("3");
                             CompDeflector compDeflector = thingWithComps.GetComp<CompDeflector>();
                             if (compDeflector != null)
                             {

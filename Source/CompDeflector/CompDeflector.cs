@@ -53,7 +53,7 @@ namespace CompDeflector
         {
             get
             {
-                return this.parent.AllComps.FirstOrDefault<ThingComp>((ThingComp y) => y.GetType().ToString() == "CompActivatableEffect.CompActivatableEffect");
+                return this.parent.AllComps.FirstOrDefault<ThingComp>((ThingComp y) => y.GetType().ToString().Contains("ActivatableEffect"));
             }
         }
 
@@ -74,14 +74,86 @@ namespace CompDeflector
         }
             
 
-        public Verb_Shoot deflectVerb;
+        public Verb_Deflected deflectVerb;
+        public bool lastShotReflected = false;
+
+        public enum AccuracyRoll
+        {
+            CritialFailure,
+            Failure,
+            Success,
+            CriticalSuccess
+        }
+        public AccuracyRoll lastAccuracyRoll = AccuracyRoll.Failure;
+
+        public void DeflectionSkillGain(SkillRecord skill)
+        {
+            skill.Learn(this.Props.deflectSkillLearnRate);
+        }
+
+        public void ReflectionSkillGain(SkillRecord skill)
+        {
+            skill.Learn(this.Props.reflectSkillLearnRate);
+        }
+
+        //Accuracy Roll Calculator
+        public AccuracyRoll ReflectionAccuracy()
+        {
+            int d100 = Rand.Range(1, 100);
+            int modifier = 0;
+            int difficulty = 80;
+            Pawn thisPawn = GetPawn;
+            if (thisPawn != null)
+            {
+                if (thisPawn.skills != null)
+                {
+                    if (this.Props != null)
+                    {
+                        if (this.Props.reflectSkill != null)
+                        {
+                            SkillRecord skill = thisPawn.skills.GetSkill(this.Props.reflectSkill);
+                            if (skill != null)
+                            {
+                                if (skill.Level > 0)
+                                {
+                                    modifier += (int)((this.Props.deflectRatePerSkillPoint) * skill.Level);
+                                    //Log.Message("Deflection mod: " + modifier.ToString());
+                                    ReflectionSkillGain(skill);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ReflectionAccuracy_InFix(ref modifier, ref difficulty);
+
+            int subtotal = d100 + modifier;
+            if (subtotal >= 90)
+            {
+                return AccuracyRoll.CriticalSuccess;
+            }
+            else if (subtotal > difficulty)
+            {
+                return AccuracyRoll.Success;
+            }
+            else if (subtotal <= 30)
+            {
+                return AccuracyRoll.CritialFailure;
+            }
+            return AccuracyRoll.Failure;
+        }
+
+        public virtual void ReflectionAccuracy_InFix(ref int modifier, ref int difficulty)
+        {
+            //Placeholder
+        }
 
         public float DeflectionChance
         {
             get
             {
                 float calc = Props.baseDeflectChance;
-
+                
                 if (GetEquippable != null)
                 {
                     if (GetPawn != null)
@@ -160,12 +232,81 @@ namespace CompDeflector
         //		}
         //}
 
+        public virtual Verb ReflectionHandler(Verb newVerb)
+        {
+            if (Props.canReflect)
+            {
+                lastAccuracyRoll = ReflectionAccuracy();
+                Verb deflectVerb = newVerb;
+
+                //Initialize VerbProperties
+                VerbProperties newVerbProps = new VerbProperties();
+
+                //Copy values over to a new verb props
+                newVerbProps.hasStandardCommand = newVerb.verbProps.hasStandardCommand;
+                newVerbProps.projectileDef = newVerb.verbProps.projectileDef;
+                newVerbProps.range = newVerb.verbProps.range;
+                newVerbProps.muzzleFlashScale = newVerb.verbProps.muzzleFlashScale;
+                newVerbProps.warmupTime = 0;
+                newVerbProps.defaultCooldownTime = 0;
+                newVerbProps.soundCast = this.Props.deflectSound;
+
+                switch (lastAccuracyRoll)
+                {
+                    case AccuracyRoll.CriticalSuccess:
+                        if (GetPawn != null)
+                        {
+                            MoteMaker.ThrowText(GetPawn.DrawPos, GetPawn.Map, "SWSaber_TextMote_CriticalSuccess".Translate(), 6f);
+                        }
+                        newVerbProps.accuracyLong = 999.0f;
+                        newVerbProps.accuracyMedium = 999.0f;
+                        newVerbProps.accuracyShort = 999.0f;
+                        lastShotReflected = true;
+                        break;
+                    case AccuracyRoll.Failure:
+                        newVerbProps.forcedMissRadius = 50.0f;
+                        newVerbProps.accuracyLong = 0.0f;
+                        newVerbProps.accuracyMedium = 0.0f;
+                        newVerbProps.accuracyShort = 0.0f;
+                        lastShotReflected = false;
+                        break;
+
+                    case AccuracyRoll.CritialFailure:
+                        if (GetPawn != null)
+                        {
+                            MoteMaker.ThrowText(GetPawn.DrawPos, GetPawn.Map, "SWSaber_TextMote_CriticalFailure".Translate(), 6f);
+                        }
+                        newVerbProps.accuracyLong = 999.0f;
+                        newVerbProps.accuracyMedium = 999.0f;
+                        newVerbProps.accuracyShort = 999.0f;
+                        lastShotReflected = true;
+                        break;
+                    case AccuracyRoll.Success:
+                        newVerbProps.accuracyLong = 999.0f;
+                        newVerbProps.accuracyMedium = 999.0f;
+                        newVerbProps.accuracyShort = 999.0f;
+                        lastShotReflected = true;
+                        break;
+                }
+                //Apply values
+                deflectVerb.verbProps = newVerbProps;
+                return deflectVerb;
+            }
+            return newVerb;
+
+        }
+
+        public virtual Verb CopyAndReturnNewVerb_PostFix(Verb newVerb)
+        {
+            return newVerb;
+        }
+
         public Verb CopyAndReturnNewVerb(Verb newVerb = null)
         {
             if (newVerb != null)
             {
                 deflectVerb = null;
-                deflectVerb = (Verb_Shoot)Activator.CreateInstance(newVerb.verbProps.verbClass);
+                deflectVerb = (Verb_Deflected)Activator.CreateInstance(typeof(Verb_Deflected));
                 deflectVerb.caster = GetPawn;
 
                 //Initialize VerbProperties
@@ -187,7 +328,7 @@ namespace CompDeflector
             {
                 if (deflectVerb == null)
                 {
-                    deflectVerb = (Verb_Shoot)Activator.CreateInstance(this.Props.DeflectVerb.verbClass);
+                    deflectVerb = (Verb_Deflected)Activator.CreateInstance(typeof(Verb_Deflected));
                     deflectVerb.caster = GetPawn;
                     deflectVerb.verbProps = this.Props.DeflectVerb;
                 }
@@ -200,30 +341,86 @@ namespace CompDeflector
             CopyAndReturnNewVerb(null);
         }
 
-        public void GiveDeflectJob(DamageInfo dinfo)
+        public virtual Pawn ResolveDeflectionTarget(Pawn defaultTarget = null)
         {
-            Job job = new Job(CompDeflectorDefOf.CastDeflectVerb, dinfo.Instigator);
-            job.playerForced = true;
-            job.locomotionUrgency = LocomotionUrgency.Sprint;
-
-            Pawn pawn2 = dinfo.Instigator as Pawn;
-            job.verbToUse = deflectVerb;
-
-            if (pawn2 != null)
+            if (lastAccuracyRoll == AccuracyRoll.CritialFailure)
             {
-                if (pawn2.equipment != null)
+                Pawn thisPawn = this.GetPawn;
+                if (thisPawn != null && !thisPawn.Dead)
                 {
-                    CompEquippable compEquip = pawn2.equipment.PrimaryEq;
-                    if (compEquip != null)
+                    Thing closestThing = GenClosest.ClosestThingReachable(thisPawn.Position, thisPawn.Map, ThingRequest.ForGroup(ThingRequestGroup.Pawn), Verse.AI.PathEndMode.ClosestTouch, TraverseParms.For(thisPawn, Danger.Deadly, TraverseMode.ByPawn), 9999, ((Thing x) => x != thisPawn));
+                    if (closestThing != null)
                     {
-                        if (compEquip.PrimaryVerb != null)
-                            job.verbToUse = CopyAndReturnNewVerb(compEquip.PrimaryVerb);
+                        Pawn closestPawn = closestThing as Pawn;
+                        if (closestPawn != null)
+                        {
+                            if (closestPawn == defaultTarget) return thisPawn;
+                            return closestPawn;
+                        }
                     }
                 }
-                job.killIncappedTarget = pawn2.Downed;
             }
-            GetPawn.jobs.TryTakeOrderedJob(job);
-            //Log.Message("TryToTakeOrderedJob Called");
+            return defaultTarget;
+        }
+
+        public virtual void CriticalFailureHandler(DamageInfo dinfo, Pawn newTarget, out bool shouldContinue)
+        {
+            shouldContinue = true;
+            if (lastAccuracyRoll == AccuracyRoll.CritialFailure)
+            {
+                Pawn thisPawn = this.GetPawn;
+                if (thisPawn != null && !thisPawn.Dead)
+                {
+                    //If the target isn't the old target, then get out of this
+                    if (newTarget != dinfo.Instigator as Pawn)
+                    {
+                        return;
+                    }
+                    shouldContinue = false;
+                    GetPawn.TakeDamage(new DamageInfo(dinfo.Def, dinfo.Amount));
+                }
+            }
+        }
+
+        public virtual void GiveDeflectJob(DamageInfo dinfo)
+        {
+            try
+            {
+
+                Pawn pawn2 = dinfo.Instigator as Pawn;
+
+                if (pawn2 != null)
+                {
+                    Job job = new Job(CompDeflectorDefOf.CastDeflectVerb);
+                    job.playerForced = true;
+                    job.locomotionUrgency = LocomotionUrgency.Sprint;
+                    if (pawn2.equipment != null)
+                    {
+                        CompEquippable compEquip = pawn2.equipment.PrimaryEq;
+                        if (compEquip != null)
+                        {
+                            if (compEquip.PrimaryVerb != null)
+                            {
+                                Verb_Deflected verbToUse = (Verb_Deflected)CopyAndReturnNewVerb(compEquip.PrimaryVerb);
+                                verbToUse = (Verb_Deflected)ReflectionHandler(deflectVerb);
+                                verbToUse.lastShotReflected = this.lastShotReflected;
+                                pawn2 = ResolveDeflectionTarget(pawn2);
+                                bool shouldContinue = false;
+                                CriticalFailureHandler(dinfo, pawn2, out shouldContinue);
+                                if (shouldContinue)
+                                {
+                                    job.targetA = pawn2;
+                                    job.verbToUse = verbToUse;
+                                    job.killIncappedTarget = pawn2.Downed;
+                                    GetPawn.jobs.TryTakeOrderedJob(job);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (NullReferenceException) { }
+            ////Log.Message("TryToTakeOrderedJob Called");
         }
         
         /// <summary>
@@ -243,7 +440,7 @@ namespace CompDeflector
                         bool? isActive = (bool)AccessTools.Method(GetActivatableEffect.GetType(), "IsActive").Invoke(GetActivatableEffect, null);
                         if (isActive == false)
                         {
-                            //Log.Message("Inactivate Weapon");
+                            ////Log.Message("Inactivate Weapon");
                             absorbed = false;
                             return;
                         }
@@ -253,6 +450,7 @@ namespace CompDeflector
                     if (Rand.Range(1, 100) > deflectThreshold)
                     {
                         absorbed = false;
+                        lastShotReflected = false;
                         return;
                     }
 

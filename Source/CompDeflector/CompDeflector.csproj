@@ -60,6 +60,7 @@
     <Compile Include="JobDriver_CastDeflectVerb.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StatWorker_DeflectionChance.cs" />
+    <Compile Include="Verb_Deflected.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -20,6 +20,7 @@ namespace CompDeflector
 
             harmony.Patch(typeof(Thing).GetMethod("TakeDamage"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("PreApplyDamagePreFix")), null);
             //harmony.Patch(typeof(PawnRenderer).GetMethod("DrawEquipmentAiming"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("DrawEquipmentAimingPreFix")), null);
+            //harmony.Patch(typeof(Verb_Shoot).GetMethod("TryCastShot"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("TryCastShot_PreFix")), null);
             harmony.Patch(typeof(PawnRenderer).GetMethod("DrawEquipmentAiming"), null, new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("DrawEquipmentAimingPostFix")), null);
             //harmony.Patch(typeof(Thing).GetMethod("get_SpecialDisplayStats"), null, new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("SpecialDisplayStatsPostFix")), null);
         }
@@ -30,7 +31,7 @@ namespace CompDeflector
 
         //public static void SpecialDisplayStatsPostFix(Thing __instance, ref IEnumerable<StatDrawEntry> __result)
         //{
-        //    //Log.Message("3");
+        //    ////Log.Message("3");
         //    ThingWithComps thingWithComps = __instance as ThingWithComps;
         //    if (thingWithComps != null)
         //    {
@@ -40,14 +41,14 @@ namespace CompDeflector
         //            List<StatDrawEntry> origin = new List<StatDrawEntry>();
         //            foreach (StatDrawEntry entry in __result)
         //            {
-        //                Log.Message("Entry");
+        //                //Log.Message("Entry");
         //                origin.Add(entry);
         //            }
 
         //            List<StatDrawEntry> entries = new List<StatDrawEntry>();
         //            foreach (StatDrawEntry entry in compDeflector.PostSpecialDisplayStats())
         //            {
-        //                Log.Message("Hey!");
+        //                //Log.Message("Hey!");
         //                entries.Add(entry);
         //            }
 
@@ -63,26 +64,26 @@ namespace CompDeflector
             Pawn pawn = (Pawn)AccessTools.Field(typeof(PawnRenderer), "pawn").GetValue(__instance);
             if (pawn != null)
             {
-                //Log.Message("1");
+                ////Log.Message("1");
                 Pawn_EquipmentTracker pawn_EquipmentTracker = pawn.equipment;
                 if (pawn_EquipmentTracker != null)
                 {
 
-                    //Log.Message("2");
+                    ////Log.Message("2");
                     foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipment)
                     {
 
-                        //Log.Message("3");
+                        ////Log.Message("3");
                         if (thingWithComps != null)
                         {
 
-                            //Log.Message("4");
-                            //Log.Message("3");
+                            ////Log.Message("4");
+                            ////Log.Message("3");
                             CompDeflector compDeflector = thingWithComps.GetComp<CompDeflector>();
                             if (compDeflector != null)
                             {
 
-                                //Log.Message("5");
+                                ////Log.Message("5");
                                 if (compDeflector.IsAnimatingNow)
                                 {
                                 bool flip = false;
@@ -129,7 +130,7 @@ namespace CompDeflector
                                 if (!flip) Graphics.DrawMesh(MeshPool.plane10, matrix, matSingle, 0);
                                 else Graphics.DrawMesh(MeshPool.plane10Flip, matrix, matSingle, 0);
                                 
-                                //Log.Message("DeflectDraw");
+                                ////Log.Message("DeflectDraw");
                                 }
                             }
                         }
@@ -142,35 +143,42 @@ namespace CompDeflector
         public static bool PreApplyDamagePreFix(Thing __instance, ref DamageInfo dinfo)
         {
             //Pawn pawn = (Pawn)AccessTools.Field(typeof(Pawn_HealthTracker), "pawn").GetValue(__instance);
-            Pawn pawn = __instance as Pawn;
-            if (pawn != null)
+            //if (dinfo.Instigator == null) return true;
+            try
             {
-                Pawn_EquipmentTracker pawn_EquipmentTracker = pawn.equipment;
-                if (pawn_EquipmentTracker != null)
+                Pawn pawn = __instance as Pawn;
+                if (pawn != null)
                 {
-                    foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipment)
+                    Pawn_EquipmentTracker pawn_EquipmentTracker = pawn.equipment;
+                    if (pawn_EquipmentTracker != null)
                     {
-                        if (thingWithComps != null)
+                        if (pawn_EquipmentTracker.AllEquipment != null && pawn_EquipmentTracker.AllEquipment.Count > 0)
                         {
-                            //Log.Message("3");
-                            CompDeflector compDeflector = thingWithComps.GetComp<CompDeflector>();
-                            if (compDeflector != null)
+                            foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipment)
                             {
-                                if (dinfo.Def != DamageDefOf.Bomb)
+                                if (thingWithComps != null)
                                 {
-                                    if (dinfo.Def != DamageDefOf.Flame)
+                                    ////Log.Message("3");
+                                    CompDeflector compDeflector = thingWithComps.GetComp<CompDeflector>();
+                                    if (compDeflector != null)
                                     {
-                                        if (!dinfo.Def.isExplosive)
+                                        if (dinfo.Def != DamageDefOf.Bomb)
                                         {
-                                            if (!dinfo.WeaponGear.IsMeleeWeapon)
+                                            if (dinfo.Def != DamageDefOf.Flame)
                                             {
-                                                bool newAbsorbed = false;
-                                                compDeflector.PostPreApplyDamage(dinfo, out newAbsorbed);
-                                                if (newAbsorbed)
+                                                if (!dinfo.Def.isExplosive)
                                                 {
-                                                    compDeflector.AnimationDeflectionTicks = 1200;
-                                                    dinfo.SetAmount(0);
-                                                    return false;
+                                                    if (!dinfo.WeaponGear.IsMeleeWeapon)
+                                                    {
+                                                        bool newAbsorbed = false;
+                                                        compDeflector.PostPreApplyDamage(dinfo, out newAbsorbed);
+                                                        if (newAbsorbed)
+                                                        {
+                                                            compDeflector.AnimationDeflectionTicks = 1200;
+                                                            dinfo.SetAmount(0);
+                                                            return false;
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -181,6 +189,7 @@ namespace CompDeflector
                     }
                 }
             }
+            catch (NullReferenceException) { }
             return true;
         }
 

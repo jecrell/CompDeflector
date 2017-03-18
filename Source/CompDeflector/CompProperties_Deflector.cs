@@ -19,6 +19,12 @@ namespace CompDeflector
         public bool useSkillInCalc = false;
         public SkillDef deflectSkill;
         public float deflectRatePerSkillPoint = 0.015f;
+        public float deflectSkillLearnRate = 250f;
+
+        public bool canReflect = false;
+        public SkillDef reflectSkill;
+        public float reflectRatePerSkillPoint = 3f;
+        public float reflectSkillLearnRate = 500f;
 
         public VerbProperties DeflectVerb;
 
