@@ -155,6 +155,11 @@ namespace CompDeflector
             //Placeholder
         }
 
+        public virtual bool TrySpecialMeleeBlock()
+        {
+            return false;
+        }
+
         public float DeflectionChance
         {
             get
@@ -196,6 +201,8 @@ namespace CompDeflector
                             }
                         }
 
+                        calc = DeflectionChance_InFix(calc);
+
                         //This handles if manipulation needs to be checked.
                         if (Props.useManipulationInCalc)
                         {
@@ -212,6 +219,11 @@ namespace CompDeflector
                 }
                 return Mathf.Clamp(calc, 0, 1.0f);
             }
+        }
+
+        public virtual float DeflectionChance_InFix(float calc)
+        {
+            return calc;
         }
 
         public string ChanceToString

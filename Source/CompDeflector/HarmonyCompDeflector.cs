@@ -179,6 +179,14 @@ namespace CompDeflector
                                                             return false;
                                                         }
                                                     }
+                                                    else
+                                                    {
+                                                        if (compDeflector.TrySpecialMeleeBlock())
+                                                        {
+                                                            dinfo.SetAmount(0);
+                                                            return false;
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
