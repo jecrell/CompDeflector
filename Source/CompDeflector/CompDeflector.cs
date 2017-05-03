@@ -236,7 +236,8 @@ namespace CompDeflector
 
         public IEnumerable<StatDrawEntry> SpecialDisplayStats()
         {
-            yield return new StatDrawEntry(StatCategoryDefOf.Basics, "DeflectChance".Translate(), ChanceToString, 0);
+            //yield return new StatDrawEntry(StatCategoryDefOf.Basics, "DeflectChance".Translate(), ChanceToString, 0);
+            yield return new StatDrawEntry(StatCategoryDefOf.Basics, "Deflect chance", ChanceToString, 0);
             
             yield break;
         }

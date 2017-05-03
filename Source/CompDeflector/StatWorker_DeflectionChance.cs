@@ -107,18 +107,23 @@ namespace CompDeflector
         public override string GetExplanation(StatRequest req, ToStringNumberSense numberSense)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine("StatsReport_DeflectionExplanation".Translate());
+            stringBuilder.AppendLine("Stat is displayed in the following format:\nDeflection chance equals ( Base chance + ( Skill Level * % per Skill Level) / Manipulation Efficiency\n\n");
+            //stringBuilder.AppendLine("StatsReport_DeflectionExplanation".Translate());
             stringBuilder.AppendLine();
-            stringBuilder.AppendLine("StatsReport_BaseDeflectChance".Translate());
+            stringBuilder.AppendLine("Base deflect chance");
+            //stringBuilder.AppendLine("StatsReport_BaseDeflectChance".Translate());
             stringBuilder.AppendLine("  " + this.GetBaseDeflectionChance(req, true).ToStringPercent());
             stringBuilder.AppendLine();
-            stringBuilder.AppendLine("StatsReport_SkillLevel".Translate());
+            stringBuilder.AppendLine("Skill level");
+            //stringBuilder.AppendLine("StatsReport_SkillLevel".Translate());
             stringBuilder.AppendLine("  " + this.GetSkillLevel(req, true).ToString("0"));
             stringBuilder.AppendLine();
-            stringBuilder.AppendLine("StatsReport_DeflectPerSkillLevel".Translate());
+            stringBuilder.AppendLine("Deflect % per skill level");
+            //stringBuilder.AppendLine("StatsReport_DeflectPerSkillLevel".Translate());
             stringBuilder.AppendLine("  " + this.GetDeflectPerSkillLevel(req, true).ToStringPercent("0.##"));
             stringBuilder.AppendLine();
-            stringBuilder.AppendLine("StatsReport_ManipulationModifier".Translate());
+            stringBuilder.AppendLine("Manipulation modifier");
+            //stringBuilder.AppendLine("StatsReport_ManipulationModifier".Translate());
             stringBuilder.AppendLine("  " + this.GetManipulationModifier(req, true).ToStringPercent());
             stringBuilder.AppendLine();
             return stringBuilder.ToString();
