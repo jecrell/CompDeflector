@@ -14,7 +14,7 @@ namespace CompDeflector
         {
             get
             {
-                ThingWithComps check = this.pawn.equipment.AllEquipment.FirstOrDefault((ThingWithComps x) => x.TryGetComp<CompDeflector>() != null);
+                ThingWithComps check = this.pawn.equipment.AllEquipmentListForReading.FirstOrDefault((ThingWithComps x) => x.TryGetComp<CompDeflector>() != null);
                 if (check != null)
                 {
                     return check.GetComp<CompDeflector>();

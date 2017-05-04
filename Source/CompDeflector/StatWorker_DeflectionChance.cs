@@ -26,7 +26,7 @@ namespace CompDeflector
                 Pawn_EquipmentTracker pawn_EquipmentTracker = pawn.equipment;
                 if (pawn_EquipmentTracker != null)
                 {
-                    foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipment)
+                    foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipmentListForReading)
                     {
                         if (thingWithComps != null)
                         {
@@ -97,7 +97,7 @@ namespace CompDeflector
                 {
                     if (pawn.health.capacities != null)
                     {
-                        return pawn.health.capacities.GetEfficiency(PawnCapacityDefOf.Manipulation);
+                        return pawn.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation);
                     }
                 }
             }

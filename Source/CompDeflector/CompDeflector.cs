@@ -208,7 +208,7 @@ namespace CompDeflector
                         {
                             if (pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation))
                             {
-                                calc *= pawn.health.capacities.GetEfficiency(PawnCapacityDefOf.Manipulation);
+                                calc *= pawn.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation);
                             }
                             else
                             {
@@ -486,7 +486,7 @@ namespace CompDeflector
 
         public override void PostExposeData()
         {
-            Scribe_Values.LookValue<int>(ref this.animationDeflectionTicks, "animationDeflectionTicks", 0);
+            Scribe_Values.Look<int>(ref this.animationDeflectionTicks, "animationDeflectionTicks", 0);
             base.PostExposeData();
         }
 

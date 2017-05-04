@@ -70,7 +70,7 @@ namespace CompDeflector
                 {
 
                     ////Log.Message("2");
-                    foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipment)
+                    foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipmentListForReading)
                     {
 
                         ////Log.Message("3");
@@ -152,9 +152,9 @@ namespace CompDeflector
                     Pawn_EquipmentTracker pawn_EquipmentTracker = pawn.equipment;
                     if (pawn_EquipmentTracker != null)
                     {
-                        if (pawn_EquipmentTracker.AllEquipment != null && pawn_EquipmentTracker.AllEquipment.Count > 0)
+                        if (pawn_EquipmentTracker.AllEquipmentListForReading != null && pawn_EquipmentTracker.AllEquipmentListForReading.Count > 0)
                         {
-                            foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipment)
+                            foreach (ThingWithComps thingWithComps in pawn_EquipmentTracker.AllEquipmentListForReading)
                             {
                                 if (thingWithComps != null)
                                 {
