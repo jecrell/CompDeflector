@@ -18,11 +18,8 @@ namespace CompDeflector
         {
             HarmonyInstance harmony = HarmonyInstance.Create("rimworld.jecrell.comps.deflector");
 
-            harmony.Patch(typeof(Thing).GetMethod("TakeDamage"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("PreApplyDamagePreFix")), null);
-            //harmony.Patch(typeof(PawnRenderer).GetMethod("DrawEquipmentAiming"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("DrawEquipmentAimingPreFix")), null);
-            //harmony.Patch(typeof(Verb_Shoot).GetMethod("TryCastShot"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("TryCastShot_PreFix")), null);
+            harmony.Patch(typeof(Thing).GetMethod("TakeDamage"), new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("TakeDamage_PreFix")), null);
             harmony.Patch(typeof(PawnRenderer).GetMethod("DrawEquipmentAiming"), null, new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("DrawEquipmentAimingPostFix")), null);
-            //harmony.Patch(typeof(Thing).GetMethod("get_SpecialDisplayStats"), null, new HarmonyMethod(typeof(HarmonyCompDeflector).GetMethod("SpecialDisplayStatsPostFix")), null);
         }
 
 
@@ -140,7 +137,7 @@ namespace CompDeflector
             
         }
 
-        public static bool PreApplyDamagePreFix(Thing __instance, ref DamageInfo dinfo)
+        public static bool TakeDamage_PreFix(Thing __instance, ref DamageInfo dinfo)
         {
             //Pawn pawn = (Pawn)AccessTools.Field(typeof(Pawn_HealthTracker), "pawn").GetValue(__instance);
             //if (dinfo.Instigator == null) return true;
