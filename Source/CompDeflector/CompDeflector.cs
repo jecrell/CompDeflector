@@ -368,15 +368,16 @@ namespace CompDeflector
                 Pawn thisPawn = this.GetPawn;
                 if (thisPawn != null && !thisPawn.Dead)
                 {
-                    Thing closestThing = GenClosest.ClosestThingReachable(thisPawn.Position, thisPawn.Map, ThingRequest.ForGroup(ThingRequestGroup.Pawn), Verse.AI.PathEndMode.ClosestTouch, TraverseParms.For(thisPawn, Danger.Deadly, TraverseMode.ByPawn), 9999, ((Thing x) => x != thisPawn));
-                    if (closestThing != null)
+                    Predicate<Thing> validator = delegate (Thing t)
                     {
-                        Pawn closestPawn = closestThing as Pawn;
-                        if (closestPawn != null)
-                        {
-                            if (closestPawn == defaultTarget) return thisPawn;
-                            return closestPawn;
-                        }
+                        Pawn pawn3 = t as Pawn;
+                        return (pawn3 != null && pawn3 != thisPawn);
+                    };
+                    Pawn closestPawn = (Pawn)GenClosest.ClosestThingReachable(thisPawn.Position, thisPawn.Map, ThingRequest.ForGroup(ThingRequestGroup.Pawn), PathEndMode.InteractionCell, TraverseParms.For(thisPawn, Danger.Deadly, TraverseMode.ByPawn, false), 9999f, validator, null, 0, -1, false, RegionType.Set_Passable, false);
+                    if (closestPawn != null)
+                    {
+                        if (closestPawn == defaultTarget) return thisPawn;
+                        return closestPawn;   
                     }
                 }
             }
